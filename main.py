@@ -2,7 +2,7 @@ import numpy as np
 import os
 import time
 
-frame = [
+frame = np.array([
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
@@ -10,47 +10,33 @@ frame = [
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0]
-]
+])
 
-def add_padding(frame):
-    size = len(frame)
-    padded = [[0] * (size + 2) for _ in range(size + 2)]
-    for i in range(size):
-        for j in range(size):
-            padded[i+1][j+1] = frame[i][j]
-    return padded
+def compute_number_of_neighbors(paded_frame, index_row, index_column):
+    neighborhood = paded_frame[index_row:index_row+3, index_column:index_column+3]
+    return np.sum(neighborhood) - paded_frame[index_row+1, index_column+1]
 
-def count_neighbors(padded, i, j):
-    count = 0
-    for x in range(i, i+3):
-        for y in range(j, j+3):
-            if x != i+1 or y != j+1:
-                count += padded[x][y]
-    return count
-
-def next_generation(frame):
-    padded = add_padding(frame)
-    size = len(frame)
-    new_frame = [[0] * size for _ in range(size)]
-    for i in range(size):
-        for j in range(size):
-            neighbors = count_neighbors(padded, i, j)
-            if frame[i][j] == 1:
+def compute_next_frame(frame):
+    paded_frame = np.pad(frame, 1, mode='constant')
+    new_frame = np.zeros_like(frame)
+    for i in range(frame.shape[0]):
+        for j in range(frame.shape[1]):
+            neighbors = compute_number_of_neighbors(paded_frame, i, j)
+            if frame[i, j] == 1:
                 if neighbors == 2 or neighbors == 3:
-                    new_frame[i][j] = 1
+                    new_frame[i, j] = 1
                 else:
-                    new_frame[i][j] = 0
+                    new_frame[i, j] = 0
             else:
                 if neighbors == 3:
-                    new_frame[i][j] = 1
+                    new_frame[i, j] = 1
                 else:
-                    new_frame[i][j] = 0
+                    new_frame[i, j] = 0
     return new_frame
 
 while True:
-    for row in frame:
-        print(' '.join(str(cell) for cell in row))
-    print()
+    print(frame)
     time.sleep(1)
     os.system('cls' if os.name == 'nt' else 'clear')
-    frame = next_generation(frame)
+    frame = compute_next_frame(frame)
+
